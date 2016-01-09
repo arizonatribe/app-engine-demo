@@ -58,7 +58,7 @@ app.filter('startFrom', function () {
      */
     var filter = function (data, start) {
         return data.slice(start);
-    }
+    };
     return filter;
 });
 
@@ -86,10 +86,10 @@ app.constant('HTTP_ERRORS', {
  */
 app.factory('oauth2Provider', function ($modal) {
     var oauth2Provider = {
-        CLIENT_ID: 'web-client-id',
+        CLIENT_ID: '860836366947-mlvo10kihl013im6sah3dm4rc1b7mp95.apps.googleusercontent.com',
         SCOPES: 'email profile',
         signedIn: false
-    }
+    };
 
     /**
      * Calls the OAuth2 authentication method.
