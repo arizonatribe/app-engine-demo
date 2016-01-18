@@ -1,0 +1,52 @@
+<div ng-controller="SpeakerDetailCtrl">
+    <div class="row">
+        <div class="col-lg-12">
+            <div id="messages" class="alert alert-{{alertStatus}}" ng-show="messages">
+                <span ng-bind="messages"></span>
+                <i class="dismiss-messages pull-right glyphicon glyphicon-remove" ng-click="messages = ''"
+                   ng-show="messages"></i>
+            </div>
+            <img class="spinner" src="/img/ajax-loader.gif" ng-show="loading"/>
+        </div>
+    </div>
+
+    <div class="row" ng-init="init()">
+        <div class="col-md-9">
+            <div class="well well-sm">
+                <h2>{{speaker.displayName}}</h2>
+                <div>
+                    <label for="email">Email: </label>
+                    <span id="email">{{speaker.mainEmail}}</span>
+                </div>
+                <p>
+                    <button class="btn btn-primary" ng-click="removeSpeaker()">Delete Speaker</button>
+                </p>
+            </div>
+            <form class="form" novalidate role="form">
+                <fieldset>
+                    <div ng-repeat="session in speaker.sessions | startFrom: pagination.currentPage * pagination.pageSize | limitTo: pagination.pageSize">
+                        <div>
+                            <a href="#/session/{{session.websafeSessionKey}}">Details</a>
+                        </div>
+                        <div>
+                            <label for="name{{$index}}">Name: </label>
+                            <span id="name{{$index}}">{{session.name}}</span>
+                        </div>
+                        <div>
+                            <label for="type{{$index}}">Type: </label>
+                            <span id="type{{$index}}">{{session.typeOfSession | lowercase}}</span>
+                        </div>
+                        <div>
+                            <label for="date{{$index}}">Date: </label>
+                            <span id="date{{$index}}">{{session.date | date:'dd-MMMM-yyyy'}}</span>
+                        </div>
+                        <div>
+                            <label for="duration{{$index}}">Duration: </label>
+                            <span id="duration{{$index}}">{{session.duration}}</span>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>
