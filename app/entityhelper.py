@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 
-"""
-parser.py -- Udacity conference server-side Python App Engine API;
-    helper that supports the conference.py Endpoints
-
-$Id: parser.py,v 1.1 2016/01/12 21:37
-
-"""
-
 import endpoints
 
 from google.appengine.ext import ndb
@@ -21,29 +13,25 @@ from mapper import FormMapper
 class EntityHelper(FormMapper):
     """Helper class that performs repetitive parsing operations to abstract it away to the conference.py"""
 
-    def _getSpeaker(self, spkr_id):
+    def _getEntity(self, key, entity_type="entity"):
+        """gets an entity by its unique key; bail if not found"""
+        entity = ndb.Key(urlsafe=key).get()
+        if not entity:
+            raise endpoints.NotFoundException(
+                'No %s found with key: %s' % (entity_type, key))
+        return entity
+        
+    def _getSpeaker(self, key):
         """get Speaker object from request; bail if not found"""
-        speaker = ndb.Key(urlsafe=spkr_id).get()
-        if not speaker:
-            raise endpoints.NotFoundException(
-                'No speaker found with key: %s' % spkr_id)
-        return speaker
+        return self._getEntity(key, 'speaker')
 
-    def _retrieveConference(self, conf_id):
+    def _retrieveConference(self, key):
         """get Conference object from request; bail if not found"""
-        conf = ndb.Key(urlsafe=conf_id).get()
-        if not conf:
-            raise endpoints.NotFoundException(
-                'No conference found with key: %s' % conf_id)
-        return conf
+        return self._getEntity(key, 'conference')
 
-    def _retrieveSession(self, sess_id):
+    def _retrieveSession(self, key):
         """get Session object from request; bail if not found"""
-        sess = ndb.Key(urlsafe=sess_id).get()
-        if not sess:
-            raise endpoints.NotFoundException(
-                'No session found with key: %s' % sess_id)
-        return sess
+        return self._getEntity(key, 'session')
 
     def _getUser(self):
         """Make sure the user is authenticated, if so return their user settings"""

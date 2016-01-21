@@ -30,7 +30,7 @@
                     <div class="col-md-3">
                         <button class="btn btn-primary" ng-click="removeConference()">Delete Conference</button>
                     </div>
-                    <div class="col-md-3" ng-if="isUserAttending">
+                    <div class="col-md-3" ng-if="!isUserAttending">
                         <a class="btn btn-primary"ng-click="registerForConference()" ng-disabled="loading">Register</a>
                     </div>
                     <div class="col-md-3" ng-if="isUserAttending">
@@ -61,10 +61,9 @@
                     </div>
                 </fieldset>
             </form>
-            
         </div>
     </div>
-    <div class="row">
+    <div class="row row-offcanvas row-offcanvas-right">
         <div class="col-xs-12 col-sm-8">
 
             <div class="table-responsive" ng-show="sessions.length > 0">
@@ -83,10 +82,10 @@
                     <tr ng-repeat="session in sessions | startFrom: pagination.currentPage * pagination.pageSize | limitTo: pagination.pageSize">
                         <td><a href="#/session/{{session.websafeSessionKey}}">Details</a></td>
                         <td>{{session.name}}</td>
-                        <td>{{session.type}}</td>
+                        <td>{{session.typeOfSession | lowercase}}</td>
                         <td>{{session.date | date:'dd-MMMM-yyyy'}}</td>
                         <td>{{session.speakerDisplayName}}</td>
-                        <td>{{session.Duration}}</td>
+                        <td>{{session.duration}} mins</td>
                     </tr>
                     </tbody>
                 </table>
@@ -117,7 +116,37 @@
                 </li>
             </ul>
         </div>
+        <div  class="col-xs-6 col-sm-4 sidebar-offcanvas" id="sidebar" role="navigation">
+            <form class="form-horizontal" name="filterForm" novalidate role="form">
+                <div class="form-group-condensed">
+                    <label for="speaker" class="form-control-static">Speaker:</label>
+                    <select id="speaker" class="form-control-sm" ng-model="filter.speaker" ng-change="addFilter('SPEAKER')" name="speaker"
+                            ng-options="speaker.websafeSpeakerKey as speaker.displayName for speaker in speakers"
+                            class="form-control">
+                    </select>
+                </div>
 
+                <div class="form-group-condensed">
+                    <label for="type" class="form-group-static">Type:</label>
+                    <select id="type" class="form-group-sm" ng-model="filter.type" ng-change="addFilter('TYPE')" name="type"
+                            ng-options="type as (type | lowercase) for type in types"
+                            class="form-control">
+                    </select>
+                </div>
+                
+                <div class="form-group-condensed">
+                    <label for="early" class="form-group-static">Early Non-Workshops</label>
+                    <input id="early" class="form-group-sm" type="checkbox" ng-model="filter.early" ng-change="addFilter('EARLY')" name="early" 
+                            class="form-control">
+                    
+                </div>
+            </form>
+
+            <button ng-click="querySessions();" class="btn btn-primary">
+                <i class="glyphicon glyphicon-search"></i> Search
+            </button>
+            <button ng-click="clearFilters()" class="btn btn-primary">Clear</button>
+        </div>
     </div>
 </div>
 

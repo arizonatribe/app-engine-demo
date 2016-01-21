@@ -101,6 +101,23 @@ browser to [localhost:8080][5] and begin using the site (start by logging in).
 If you wish instead to view the deployed version of this site, please visit
 [this link][6].
 
+## Setup Instructions
+This application was forked from a template and customized to complete the requirements of the Udacity Full Stack Developer nanodegree. These steps were followed to setup the project on the Google app engine after finishing coding. So these steps can be followed by yourself if you wish to deploy this project as-is onto the Google App Engine.
+
+1. Make sure the Google App Engine SDK for Python is installed (see [instructions][10])
+1. Update the value of `application` in `app.yaml` to the app ID you
+   have registered in the App Engine admin console and would like to use to host
+   your instance of this sample.
+1. Update the values at the top of `settings.py` to
+   reflect the respective client IDs you have registered in the
+   [Developer Console][8].
+1. Update the value of CLIENT_ID in `static/js/app.js` to the Web client ID
+1. (Optional) Mark the configuration files as unchanged as follows:
+   `$ git update-index --assume-unchanged app.yaml settings.py static/js/app.js`
+1. Run the app with the devserver using `dev_appserver.py DIR`, and ensure it's running by visiting your local server's address (by default [localhost:8080][5].)
+1. (Optional) Generate your client library(ies) with [the endpoints tool][9].
+1. Deploy your application.
+
 [1]: https://developers.google.com/appengine
 [2]: http://python.org
 [3]: https://developers.google.com/appengine/docs/python/endpoints/
@@ -108,3 +125,6 @@ If you wish instead to view the deployed version of this site, please visit
 [5]: https://localhost:8080/
 [6]: https://fluent-music-116517.appspot.com
 [7]: https://angularjs.org/
+[8]: https://console.developers.google.com/
+[9]: https://developers.google.com/appengine/docs/python/endpoints/endpoints_tool
+[10]: https://cloud.google.com/appengine/downloads?hl=en#Google_App_Engine_SDK_for_Python

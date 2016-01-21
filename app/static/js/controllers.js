@@ -529,6 +529,9 @@ conferenceApp.controllers.controller('ShowSessionCtrl', function ($scope, $log, 
         } else {
             $scope.filter.selected = '';
         }
+        ['TYPE', 'SPEAKER', 'EARLY'].forEach(function(val) {
+           if (key !== val) $scope.filter[val.toLowerCase()] = ''; 
+        });
     };
 
     /**
@@ -636,7 +639,7 @@ conferenceApp.controllers.controller('ShowSessionCtrl', function ($scope, $log, 
                         });
                     });   
             } else {
-                gapi.client.conference.getConferenceSessionsByType({
+                gapi.client.conference.getAllSessionsByType({
                         sessionType: $scope.filter.type
                     }).execute(function (resp) {
                         $scope.$apply(function () {
@@ -737,7 +740,23 @@ conferenceApp.controllers.controller('SpeakerDetailCtrl', function ($scope, $log
                 }
             });
         });
-
+        gapi.client.conference.getFeaturedSpeaker({
+            websafeSpeakerKey: $routeParams.websafeSpeakerKey
+        }).execute(function(res) {
+            $scope.$apply(function () {
+                if (res.error) {
+                    // The request has failed.
+                    var errorMessage = res.error.message || '';
+                    $scope.messages = 'Failed to retrieve featured speaker ' + errorMessage;
+                    $scope.alertStatus = 'warning';
+                    $log.error($scope.messages);
+                } else {
+                    // The request has succeeded.
+                    $scope.summary = res.data || '';
+                    if (!res.data) $log.debug('No feature speaker was found');
+                }
+            });
+        });
         $scope.loading = true;
     };
 
@@ -1133,7 +1152,74 @@ conferenceApp.controllers.controller('ConferenceDetailCtrl', function ($scope, $
      * @type {Array}
      */
     $scope.sessions = [];
-    
+
+    /**
+     * Holds the filter that will be applied when getSessions is invoked.
+     * @type {object}
+     */
+    $scope.filter = {
+        selected: ''
+    };
+
+    /**
+     * Holds the default values for the input candidates for topics select.
+     * @type {string[]}
+     */
+    $scope.types = [
+        'UNKNOWN',
+        'WORKSHOP',
+        'LECTURE',
+        'KEYNOTE',
+        'MEETUP'
+    ];
+    /**
+     * Adds a filter and set the default value.
+     */
+    $scope.addFilter = function (key) {
+        if ($scope.filter[key.toLowerCase()]) {
+            $scope.filter.selected = key;
+        } else {
+            $scope.filter.selected = '';
+        }
+        ['TYPE', 'SPEAKER', 'EARLY'].forEach(function(val) {
+           if (key !== val) $scope.filter[val.toLowerCase()] = ''; 
+        });
+    };
+
+    /**
+     * Clears filter.
+     */
+    $scope.clearFilters = function () {
+        $scope.filter = {
+            selected: '',
+            type: '',
+            speaker: ''
+        };
+        gapi.client.conference.getAllSessions()
+            .execute(function (resp) {
+                $scope.$apply(function () {
+                    $scope.loading = false;
+                    if (resp.error) {
+                        // The request has failed.
+                        var errorMessage = resp.error.message || '';
+                        $scope.messages = 'Failed to query sessions : ' + errorMessage;
+                        $scope.alertStatus = 'warning';
+                    } else {
+                        // The request has succeeded.
+                        $scope.submitted = false;
+                        $scope.messages = 'Query succeeded ';
+                        $scope.alertStatus = 'success';
+                        $log.info($scope.messages);
+
+                        $scope.sessions = [];
+                        angular.forEach(resp.items, function (session) {
+                            $scope.sessions.push(session);
+                        });
+                    }
+                    $scope.submitted = true;
+                });
+            });        
+    };    
     /**
      * Namespace for the pagination.
      * @type {{}|*}
@@ -1148,68 +1234,95 @@ conferenceApp.controllers.controller('ConferenceDetailCtrl', function ($scope, $
      *
      */
     $scope.init = function () {
+        var deferred1 = $q.defer(),
+            deferred2 = $q.defer(),
+            deferred3 = $q.defer(),
+            deferred4 = $q.defer();
+            
         $scope.loading = true;
-        $q.all([
-            gapi.client.conference.getConference({
-                websafeConferenceKey: $routeParams.websafeConferenceKey
-            }).execute(function (resp) {
-                $scope.$apply(function () {
-                    if (resp.error) {
-                        // The request has failed.
-                        var errorMessage = resp.error.message || '';
-                        $scope.messages = 'Failed to get the conference : ' + $routeParams.websafeConferenceKey
-                            + ' ' + errorMessage;
-                        $scope.alertStatus = 'warning';
-                        $log.error($scope.messages);
-                    } else {
-                        // The request has succeeded.
-                        $scope.alertStatus = 'success';
-                        $scope.conference = resp.result;
-                    }
-                });
-            }),
-            // If the user is attending the conference, updates the status message and available function.
-            gapi.client.conference.getProfile().execute(function (resp) {
-                $scope.$apply(function () {
-                    if (resp.error) {
-                        // Failed to get a user profile.
-                    } else {
-                        var profile = resp.result;
-                        if (profile && profile.conferenceKeysToAttend && profile.conferenceKeysToAttend.length) {
-                            profile.conferenceKeysToAttend.forEach(function(key) {
-                                if ($routeParams.websafeConferenceKey === key) {
-                                    // The user is attending the conference.
-                                    $scope.alertStatus = 'info';
-                                    $scope.messages = 'You are attending this conference';
-                                    $scope.isUserAttending = true;
-                                }
-                            });
-                        }
-                    }
-                });
-            }),
-            gapi.client.conference.getConferenceSessions({
-               websafeConferenceKey: $routeParams.websafeConferenceKey 
-            }).execute(function (resp) {
-                $scope.$apply(function () {
-                    if (resp.error) {
-                        // The request has failed.
-                        var errorMessage = resp.error.message || '';
-                        $scope.messages = 'Failed to query conference sessions : ' + errorMessage;
-                        $scope.alertStatus = 'warning';
-                    } else {
-                        // The request has succeeded.
-                        $scope.submitted = false;
-                        $scope.alertStatus = 'success';
-                        $log.info($scope.messages);
-    
-                        $scope.sessions = [];
-                        angular.forEach(resp.items, function (session) {
-                            $scope.sessions.push(session);
+        gapi.client.conference.getConference({
+            websafeConferenceKey: $routeParams.websafeConferenceKey
+        }).execute(function (resp) {
+            $scope.$apply(function () {
+                if (resp.error) {
+                    // The request has failed.
+                    var errorMessage = resp.error.message || '';
+                    $scope.messages = 'Failed to get the conference : ' + $routeParams.websafeConferenceKey
+                        + ' ' + errorMessage;
+                    $scope.alertStatus = 'warning';
+                    $log.error($scope.messages);
+                    deferred1.reject($scope.messages);
+                } else {
+                    // The request has succeeded.
+                    $scope.alertStatus = 'success';
+                    $scope.conference = resp.result;
+                    deferred1.resolve(resp.result);
+                }
+            });
+        });
+        // If the user is attending the conference, updates the status message and available function.
+        gapi.client.conference.getProfile().execute(function (resp) {
+            $scope.$apply(function () {
+                if (resp.error) {
+                    // Failed to get a user profile.
+                    deferred2.reject(resp.error);
+                } else {
+                    var profile = resp.result;
+                    if (profile && profile.conferenceKeysToAttend && profile.conferenceKeysToAttend.length) {
+                        profile.conferenceKeysToAttend.forEach(function(key) {
+                            if ($routeParams.websafeConferenceKey === key) {
+                                // The user is attending the conference.
+                                $scope.alertStatus = 'info';
+                                $scope.messages = 'You are attending this conference';
+                                $scope.isUserAttending = true;
+                            }
                         });
                     }
-                });
-            })
+                    deferred2.resolve(profile);
+                }
+            });
+        });
+        gapi.client.conference.getConferenceSessions({
+           websafeConferenceKey: $routeParams.websafeConferenceKey 
+        }).execute(function (resp) {
+            $scope.$apply(function () {
+                if (resp.error) {
+                    // The request has failed.
+                    var errorMessage = resp.error.message || '';
+                    $scope.messages = 'Failed to query conference sessions : ' + errorMessage;
+                    $scope.alertStatus = 'warning';
+                    deferred3.reject($scope.messages);
+                } else {
+                    // The request has succeeded.
+                    $scope.submitted = false;
+                    $scope.alertStatus = 'success';
+                    $log.info($scope.messages);
+
+                    $scope.sessions = [];
+                    angular.forEach(resp.items, function (session) {
+                        $scope.sessions.push(session);
+                    });
+                    deferred3.resolve($scope.sessions);
+                }
+            });
+        });
+        gapi.client.conference.getConferenceSpeakers({
+           websafeConferenceKey: $routeParams.websafeConferenceKey 
+        }).execute(function(resp) {
+          $scope.$apply(function() {
+            if (resp.error) {
+              deferred4.reject(resp.error);
+            } else {
+              $scope.speakers = resp.speakers;
+              deferred4.resolve(resp.speakers);
+            }
+          });
+        });
+        $q.all([
+            deferred1.promise,
+            deferred2.promise,
+            deferred3.promise,
+            deferred4.promise
         ]).finally(function() {
             $scope.loading = false;
         });
@@ -1363,7 +1476,92 @@ conferenceApp.controllers.controller('ConferenceDetailCtrl', function ($scope, $
     $scope.pagination.isDisabled = function (event) {
         return angular.element(event.target).hasClass('disabled');
     };
-
+    
+    $scope.querySessions = function () {
+        $scope.loading = true;
+        if ($scope.filter.selected) {
+            if ($scope.filter.selected === 'SPEAKER') {
+                gapi.client.conference.getSessionsBySpeaker({
+                        speakerUserId: $scope.filter.speaker
+                    }).execute(function (resp) {
+                        $scope.$apply(function () {
+                            $scope.loading = false;
+                            if (resp.error) {
+                                // The request has failed.
+                                var errorMessage = resp.error.message || '';
+                                $scope.messages = 'Failed to query sessions : ' + errorMessage;
+                                $scope.alertStatus = 'warning';
+                            } else {
+                                // The request has succeeded.
+                                $scope.submitted = false;
+                                $scope.messages = 'Query succeeded ';
+                                $scope.alertStatus = 'success';
+                                $log.info($scope.messages);
+        
+                                $scope.sessions = [];
+                                angular.forEach(resp.items, function (session) {
+                                    $scope.sessions.push(session);
+                                });
+                            }
+                            $scope.submitted = true;
+                        });
+                    });
+            } else if ($scope.filter.selected === 'EARLY') {
+                gapi.client.conference.getDaytimeNonWorkshopSessions().execute(function (resp) {
+                        $scope.$apply(function () {
+                            $scope.loading = false;
+                            if (resp.error) {
+                                // The request has failed.
+                                var errorMessage = resp.error.message || '';
+                                $scope.messages = 'Failed to query early sessions : ' + errorMessage;
+                                $scope.alertStatus = 'warning';
+                            } else {
+                                // The request has succeeded.
+                                $scope.submitted = false;
+                                $scope.messages = 'Query succeeded ';
+                                $scope.alertStatus = 'success';
+                                $log.info($scope.messages);
+        
+                                $scope.sessions = [];
+                                angular.forEach(resp.items, function (session) {
+                                    $scope.sessions.push(session);
+                                });
+                            }
+                            $scope.submitted = true;
+                        });
+                    });   
+            } else {
+                gapi.client.conference.getAllSessionsByType({
+                        sessionType: $scope.filter.type,
+                        websafeConferenceKey: $routeParams.websafeConferenceKey
+                    }).execute(function (resp) {
+                        $scope.$apply(function () {
+                            $scope.loading = false;
+                            if (resp.error) {
+                                // The request has failed.
+                                var errorMessage = resp.error.message || '';
+                                $scope.messages = 'Failed to query sessions : ' + errorMessage;
+                                $scope.alertStatus = 'warning';
+                            } else {
+                                // The request has succeeded.
+                                $scope.submitted = false;
+                                $scope.messages = 'Query succeeded ';
+                                $scope.alertStatus = 'success';
+                                $log.info($scope.messages);
+        
+                                $scope.sessions = [];
+                                angular.forEach(resp.items, function (session) {
+                                    $scope.sessions.push(session);
+                                });
+                            }
+                            $scope.submitted = true;
+                        });
+                    });
+            }
+        } else {
+            $scope.clearFilters();
+        }
+    };
 });
 
 
@@ -1536,7 +1734,6 @@ conferenceApp.controllers.controller('SessionDetailCtrl', function ($scope, $log
                 }
             });
         });
-
         $q.all([
             deferred1.promise,
             deferred2.promise

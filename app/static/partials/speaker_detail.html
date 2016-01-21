@@ -14,6 +14,7 @@
         <div class="col-md-9">
             <div class="well well-sm">
                 <h2>{{speaker.displayName}}</h2>
+                <p ng-if="summary">{{summary}}</p>
                 <div>
                     <label for="email">Email: </label>
                     <span id="email">{{speaker.mainEmail}}</span>

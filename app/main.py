@@ -1,17 +1,5 @@
 #!/usr/bin/env python
 
-"""
-main.py -- Udacity conference server-side Python App Engine
-    HTTP controller handlers for memcache & task queue access
-
-$Id$
-
-created by wesc on 2014 may 24
-
-"""
-
-__author__ = 'wesc+api@google.com (Wesley Chun)'
-
 import webapp2
 from google.appengine.api import app_identity
 from google.appengine.api import mail
@@ -23,12 +11,9 @@ class SetAnnouncementHandler(webapp2.RequestHandler):
         ConferenceApi._cacheAnnouncement()
         
 class SetSpeakerAndSessions(webapp2.RequestHandler):
-    def get(self):
+    def post(self):
         """Set speaker and their sessions in Memcache."""
-        ConferenceApi._cacheSpeakerAndSession(
-            self.request.get('speaker_id'),
-            self.request.get('conf_id')
-        )
+        ConferenceApi._cacheSpeakerAndSession(self.request.get('speakerId'), self.request.get('confId'))
 
 class SendConfirmationEmailHandler(webapp2.RequestHandler):
     def post(self):

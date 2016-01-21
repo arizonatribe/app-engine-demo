@@ -54,10 +54,10 @@
                     <tr ng-repeat="session in sessions | startFrom: pagination.currentPage * pagination.pageSize | limitTo: pagination.pageSize">
                         <td><a href="#/session/{{session.websafeSessionKey}}">Details</a></td>
                         <td>{{session.name}}</td>
-                        <td>{{session.type}}</td>
+                        <td>{{session.typeOfSession | lowercase}}</td>
                         <td>{{session.date | date:'dd-MMMM-yyyy'}}</td>
                         <td>{{session.speakerDisplayName}}</td>
-                        <td>{{session.Duration}}</td>
+                        <td>{{session.duration}} mins</td>
                     </tr>
                     </tbody>
                 </table>

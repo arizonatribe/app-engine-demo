@@ -1,4 +1,6 @@
 indexes:
+
+
 - kind: Conference
   properties:
   - name: city
@@ -90,6 +92,12 @@ indexes:
   - name: name
 
 - kind: ConferenceSession
+  ancestor: yes
+  properties:
+  - name: speakerUserId
+  - name: name
+
+- kind: ConferenceSession
   properties:
   - name: typeOfSession
   - name: speakerUserId
@@ -104,3 +112,7 @@ indexes:
   - name: speakerUserId
   - name: name
   
+- kind: ConferenceSession
+  properties:
+  - name: typeOfSession
+  - name: startTime
