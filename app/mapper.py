@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 
-from models import Profile
 from models import ProfileForm
 from models import SpeakerForm
-from models import Conference
 from models import ConferenceForm
-from models import ConferenceSession
 from models import ConferenceSessionForm
-from models import Wishlist
 from models import WishlistForm
 from models import SessionType
 from models import TeeShirtSize
+
 
 class FormMapper(object):
     """Helper class that converts ndb objects into Forms returned to the API endpoint caller"""
