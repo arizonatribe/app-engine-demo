@@ -1,0 +1,4 @@
+<div id="messages" class="alert alert-{{ctrlDisplayStatusMessage.alertStatus}}" ng-show="ctrlDisplayStatusMessage.statusMessage">
+  <span ng-bind="ctrlDisplayStatusMessage.statusMessage"></span>
+  <i class="dismiss-messages pull-right glyphicon glyphicon-remove" ng-click="ctrlDisplayStatusMessage.statusMessage = ''" ng-if="ctrlDisplayStatusMessage.statusMessage"></i>
+</div>

@@ -1,0 +1,17 @@
+<div class="form-group">
+    <label>{{ ctrlDatepicker.label }}</label>
+    <span class="label label-danger"
+        ng-show="!ctrlDatepicker.isValidDate()">{{ ctrlDatepicker.validationMessage }}</span>
+    <p class="input-group">
+        <input type="text" class="form-control"
+               datepicker-popup="{{ctrlDatepicker.format}}"
+               ng-model="ctrlDatepicker.dateField" is-open="ctrlDatepicker.opened"
+               datepicker-options="ctrlDatepicker.dateOptions"
+               close-text="Close" />
+        <span class="input-group-btn">
+            <button class="btn btn-default" ng-click="ctrlDatepicker.open($event)">
+                <i class="glyphicon glyphicon-calendar"></i>
+            </button>
+        </span>
+    </p>
+</div>

@@ -1,14 +1,5 @@
 <div ng-controller="CreateConferenceCtrl">
-    <div class="row">
-        <div class="col-lg-12">
-            <div id="messages" class="alert alert-{{alertStatus}}" ng-show="messages">
-                <span ng-bind="messages"></span>
-                <i class="dismiss-messages pull-right glyphicon glyphicon-remove" ng-click="messages = ''"
-                   ng-show="messages"></i>
-            </div>
-            <img class="spinner" src="/img/ajax-loader.gif" ng-show="loading"/>
-        </div>
-    </div>
+    <status></status>
     <div class="row">
         <div class="col-md-8">
             <h3>Create a conference</h3>
@@ -43,37 +34,14 @@
                     </select>
                 </div>
 
-                <div class="form-group" ng-controller="DatepickerCtrl">
-                    <label for="startDate">Start Date</label>
-                    <p class="input-group">
-                        <input id="startDate" type="text" class="form-control" datepicker-popup="{{format}}"
-                               ng-model="conference.startDate" is-open="opened"
-                               datepicker-options="dateOptions"
-                               close-text="Close"/>
-                    <span class="input-group-btn">
-                        <button class="btn btn-default" ng-click="open($event)"><i
-                                class="glyphicon glyphicon-calendar"></i>
-                        </button>
-                    </span>
-                    </p>
-                </div>
+                <datepicker label="Start Date" date-field="ctrlCreateConference.conference.startDate"
+                            validation-message="End Date must be later or equal to Start Date!">
+                </datepicker>
 
-                <div class="form-group" ng-controller="DatepickerCtrl">
-                    <label for="endDate">End Date</label>
-                    <span class="label label-danger"
-                        ng-show="!isValidDates()">End Date must be later or equal to Start Date!</span>
-                    <p class="input-group">
-                        <input id="endDate" type="text" class="form-control" datepicker-popup="{{format}}"
-                               ng-model="conference.endDate" is-open="opened"
-                               datepicker-options="dateOptions"
-                               close-text="Close"/>
-                    <span class="input-group-btn">
-                        <button class="btn btn-default" ng-click="open($event)"><i
-                                class="glyphicon glyphicon-calendar"></i>
-                        </button>
-                    </span>
-                    </p>
-                </div>
+                <datepicker label="End Date" date-field="ctrlCreateConference.conference.endDate"
+                            is-valid="ctrlCreateConference.isValidDates()"
+                            validation-message="End Date must be later or equal to Start Date!">
+                </datepicker>
 
                 <div class="form-group">
                     <label for="maxAttendees">Max Attendees</label>
