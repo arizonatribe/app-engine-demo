@@ -3,6 +3,7 @@
 import endpoints
 from protorpc import messages
 from protorpc import message_types
+
 from models import ConferenceForm
 from models import ConferenceSessionForm
 from models import SpeakerForm
@@ -19,13 +20,12 @@ ANDROID_AUDIENCE = WEB_CLIENT_ID
 EMAIL_SCOPE = endpoints.EMAIL_SCOPE
 API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
 MEMCACHE_ANNOUNCEMENTS_KEY = "RECENT_ANNOUNCEMENTS"
-MEMCACHE_SESSION_KEY = "SPEAKER_AND_SESSION"
 
 DEFAULTS = {
     "city": "Default City",
     "maxAttendees": 0,
     "seatsAvailable": 0,
-    "topics": [ "Default", "Topic" ],
+    "topics": ["Default", "Topic"]
 }
 
 SESSION_DEFAULTS = {
@@ -43,11 +43,11 @@ OPERATORS = {
     'NE':   '!='
 }
 
-FIELDS =    {
+FIELDS = {
     'CITY': 'city',
     'TOPIC': 'topics',
     'MONTH': 'month',
-    'MAX_ATTENDEES': 'maxAttendees',
+    'MAX_ATTENDEES': 'maxAttendees'
 }
 
 CONF_GET_REQUEST = endpoints.ResourceContainer(

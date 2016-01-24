@@ -1,24 +1,18 @@
 #!/usr/bin/env python
 
-from datetime import datetime, time
+from datetime import datetime
 
 import endpoints
-from protorpc import messages
-from protorpc import message_types
-from protorpc import remote
 
-from google.appengine.api import memcache
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from models import ConflictException
-from models import Profile
 from models import Speaker
 from models import BooleanMessage
 from models import Conference
 from models import ConferenceSession
 from models import Wishlist
-from models import SessionType
 
 from entityhelper import EntityHelper
 
@@ -75,9 +69,9 @@ class ConferenceApiHelper(EntityHelper):
         # add confirmation email sending task to queue
         user = endpoints.get_current_user()
         taskqueue.add(params={'email': user.email(),
-            'conferenceInfo': repr(request)},
-            url='/tasks/send_confirmation_email'
-        ) 
+                              'conferenceInfo': repr(request)},
+                      url='/tasks/send_confirmation_email'
+                      )
         return request
 
     @ndb.transactional()
@@ -88,9 +82,9 @@ class ConferenceApiHelper(EntityHelper):
         # check that user is owner
         if user_id != conf.organizerUserId:
             raise endpoints.ForbiddenException(
-                'Only the owner can update the conference.')        
+                    'Only the owner can update the conference.')
 
-        # copy ConferenceForm/ProtoRPC Message into dict
+            # copy ConferenceForm/ProtoRPC Message into dict
         data = {field.name: getattr(request, field.name) for field in request.all_fields()}
 
         # Not getting all the fields, so don't create a new object; just
@@ -106,6 +100,7 @@ class ConferenceApiHelper(EntityHelper):
                         conf.month = data.month
                 # write to Conference object
                 setattr(conf, field.name, data)
+
         conf.put()
         return self.toConferenceForm(conf, getattr(self._getUserProfile(user_id), 'displayName'))
 
@@ -126,6 +121,7 @@ class ConferenceApiHelper(EntityHelper):
                 filtr["value"] = int(filtr["value"])
             formatted_query = ndb.query.FilterNode(filtr["field"], filtr["operator"], filtr["value"])
             q = q.filter(formatted_query)
+
         return q
 
     def _formatFilters(self, filters):
@@ -153,8 +149,9 @@ class ConferenceApiHelper(EntityHelper):
                     inequality_field = filtr["field"]
 
             formatted_filters.append(filtr)
-        return (inequality_field, formatted_filters)
-        
+
+        return inequality_field, formatted_filters
+
     def _createConferenceSessionObject(self, request):
         """Create or update ConferenceSession object, returning ConferenceSessionForm/request."""
         p_key = self._getUserProfileKey()
@@ -183,28 +180,28 @@ class ConferenceApiHelper(EntityHelper):
         del data['speakerDisplayName']
 
         conf = self._retrieveConference(request.websafeConferenceKey)
-        
+
         # check that user is also the conference creator
         if p_key != conf.key.parent():
             raise endpoints.UnauthorizedException(
-                'Only Conference Creator can also create session')
-                
+                    'Only Conference Creator can also create session')
+
         # check if session exists given websafeConfKey
         # get conference; check that it exists
         wsck = request.websafeConferenceKey
         conf = ndb.Key(urlsafe=wsck).get()
         if not conf:
             raise endpoints.NotFoundException(
-                'No conference found with key: %s' % wsck)
+                    'No conference found with key: %s' % wsck)
 
         # generate Profile Key based on user ID and Conference
         # ID based on Profile key get Conference key from ID
         cs_id = ConferenceSession.allocate_ids(size=1, parent=conf.key)[0]
         cs_key = ndb.Key(ConferenceSession, cs_id, parent=conf.key)
         data['key'] = cs_key
-        
+
         speakerDisplayName = None
-        
+        speaker = None
         if request.speakerUserId:
             speaker = self._getSpeaker(request.speakerUserId)
             data['speakerUserId'] = request.speakerUserId
@@ -219,16 +216,17 @@ class ConferenceApiHelper(EntityHelper):
             # check if speaker already scheduled to speak at this session
             if wssk in speaker.sessionKeysToSpeakAt:
                 raise ConflictException(
-                    "They are already set to speak for this conference")
+                        "They are already set to speak for this conference")
 
             speaker.sessionKeysToSpeakAt.append(wssk)
             speaker.put()
         # add speaker name and their sessions task to queue
         taskqueue.add(params={'speakerId': request.speakerUserId,
-            'confId': conf.key.urlsafe()},
-            url='/tasks/set_speaker_and_sessions'
-        )
+                              'confId': conf.key.urlsafe()},
+                      url='/tasks/set_speaker_and_sessions'
+                      )
         conf_sess = ndb.Key(urlsafe=cs_key.urlsafe()).get()
+
         return self.toConferenceSessionForm(conf_sess, speakerDisplayName)
 
     def _createWishlistObject(self, request):
@@ -239,11 +237,10 @@ class ConferenceApiHelper(EntityHelper):
         wssk = request.websafeSessionKey
         sess = ndb.Key(urlsafe=wssk).get()
         if not sess:
-            raise endpoints.NotFoundException(
-                'No session found with key: %s' % wssk)
-        
+            raise endpoints.NotFoundException('No session found with key: %s' % wssk)
+
         w = {}
-        
+
         # Create a unique key
         w_id = Wishlist.allocate_ids(size=1, parent=p_key)[0]
         w_key = ndb.Key(Wishlist, w_id, parent=p_key)
@@ -258,13 +255,12 @@ class ConferenceApiHelper(EntityHelper):
             w['sessions'] = [wssk]
             Wishlist(**w).put()
         elif wssk in wish.sessions:
-            raise ConflictException(
-                "You have already placed this session in your wishlist")
+            raise ConflictException("You have already placed this session in your wishlist")
         else:
             wish.sessions.append(wssk)
             wish.put()
             w['sessions'] = [self._retrieveSession(cs_id) for cs_id in wish.sessions]
-        
+
         return self.toWishlistForm(w)
 
     def _doProfile(self, save_request=None):
@@ -272,7 +268,7 @@ class ConferenceApiHelper(EntityHelper):
         # get user Profile
         prof = self._getProfileFromUser()
 
-        # if saveProfile(), process user-modifyable fields
+        # if saveProfile(), process user-modifiable fields
         if save_request:
             for field in ('displayName', 'teeShirtSize'):
                 if hasattr(save_request, field):
@@ -283,12 +279,12 @@ class ConferenceApiHelper(EntityHelper):
 
         # return ProfileForm
         return self.toProfileForm(prof)
-    
+
     def _createSpeaker(self, request):
         """Creates a new Speaker and converts it to a SpeakerForm"""
         speaker = {field.name: getattr(request, field.name) for field in request.all_fields()}
         del speaker['websafeSpeakerKey']
-        
+
         # Generate a unique key for the speaker
         s_id = Speaker.allocate_ids(size=1)[0]
         s_key = ndb.Key(Speaker, s_id)
@@ -300,8 +296,8 @@ class ConferenceApiHelper(EntityHelper):
     @ndb.transactional(xg=True)
     def _conferenceRegistration(self, request, reg=True):
         """Register or unregister user for selected conference."""
-        retval = None
-        prof = self._getProfileFromUser() # get user Profile
+        retval = False
+        prof = self._getProfileFromUser()  # get user Profile
 
         # check if conf exists gven websafeConfKey
         # get conference; check that it exists
@@ -309,19 +305,19 @@ class ConferenceApiHelper(EntityHelper):
         conf = ndb.Key(urlsafe=wsck).get()
         if not conf:
             raise endpoints.NotFoundException(
-                'No conference found with key: %s' % wsck)
+                    'No conference found with key: %s' % wsck)
 
         # register
         if reg:
             # check if user already registered otherwise add
             if wsck in prof.conferenceKeysToAttend:
                 raise ConflictException(
-                    "You have already registered for this conference")
+                        "You have already registered for this conference")
 
             # check if seats avail
             if conf.seatsAvailable <= 0:
                 raise ConflictException(
-                    "There are no seats available.")
+                        "There are no seats available.")
 
             # register user, take away one seat
             prof.conferenceKeysToAttend.append(wsck)
@@ -337,10 +333,9 @@ class ConferenceApiHelper(EntityHelper):
                 prof.conferenceKeysToAttend.remove(wsck)
                 conf.seatsAvailable += 1
                 retval = True
-            else:
-                retval = False
 
         # write things back to the datastore & return
         prof.put()
         conf.put()
+
         return BooleanMessage(data=retval)

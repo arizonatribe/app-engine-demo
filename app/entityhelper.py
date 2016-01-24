@@ -10,6 +10,7 @@ from models import TeeShirtSize
 from utils import getUserId
 from mapper import FormMapper
 
+
 class EntityHelper(FormMapper):
     """Helper class that performs repetitive parsing operations to abstract it away to the conference.py"""
 
@@ -59,10 +60,10 @@ class EntityHelper(FormMapper):
         if not profile:
             user = endpoints.get_current_user()
             profile = Profile(
-                key = p_key,
-                displayName = user.nickname(),
-                mainEmail= user.email(),
-                teeShirtSize = str(TeeShirtSize.NOT_SPECIFIED),
+                key=p_key,
+                displayName=user.nickname(),
+                mainEmail=user.email(),
+                teeShirtSize=str(TeeShirtSize.NOT_SPECIFIED),
             )
             profile.put()
 
