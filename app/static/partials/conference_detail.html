@@ -119,7 +119,7 @@
                 <div class="form-group-condensed">
                     <label for="type" class="form-group-static">Type:</label>
                     <select id="type" class="form-group-sm" ng-model="filter.type" ng-change="addFilter('TYPE')" name="type"
-                            ng-options="type as (type | lowercase) for type in types"
+                            ng-options="type as (type | lowercase) for type in ctrlConferenceDetail.SessionTypes"
                             class="form-control">
                     </select>
                 </div>
