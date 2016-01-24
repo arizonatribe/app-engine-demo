@@ -50,7 +50,7 @@
         },
         /**
          * Removes all filters except for a specified filter(s)
-         * @param {string|array} keys
+         * @param {string|Array} keys
          */
         removeAllFiltersExcept: function(keys) {
           if (angular.isString(keys) || angular.isArray(keys)) {
@@ -70,7 +70,7 @@
             svc.filtereableFields.forEach(function(fil) {
               if (fil.enumValue === field.toUpperCase()) {
                 svc.filters.push({
-                  field: fil.enumValue,
+                  field: fil,
                   operator: searchFilterOperators[0],
                   value: val || ''
                 });
