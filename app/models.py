@@ -143,7 +143,7 @@ class TeeShirtSize(messages.Enum):
 class Speaker(ndb.Model):
     """Speaker -- User profile object"""
     displayName = ndb.StringProperty()
-    mainEmail = ndb.StringProperty()
+    mainEmail = ndb.StringProperty(required=True)
     sessionKeysToSpeakAt = ndb.StringProperty(repeated=True)
 
 

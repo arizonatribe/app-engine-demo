@@ -54,6 +54,10 @@ to view all the Conference Sessions from the Conference Detail page. The
 Conference Detail page was also given a Delete Conference button and supporting
 API functionality and so was the Conference Session page given Delete functionality.
 
+The usage of the task queue was a project requirement, however I deviated slightly by
+allowing entries into the task queue for each conference speaker that speaks at more
+than one session, rather than just one queue overall.
+
 ## Problem Query Challenge
 For the assignment, one question posed to the student was to identify a flaw with
 a particular use-case and describe a possible solution. The challenge was to 

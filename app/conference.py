@@ -9,6 +9,7 @@ conference.py -- Udacity conference server-side Python App Engine API;
 from datetime import time
 
 import endpoints
+import logging
 from protorpc import message_types
 from protorpc import remote
 
@@ -178,14 +179,14 @@ class ConferenceApi(remote.Service, ConferenceApiHelper):
 
         # return set of ConferenceSessionForm objects per ConferenceSession
         return ConferenceSessionForms(
-            items=[self.toConferenceSessionForm(cs, getattr(profile, 'displayName')) for cs in conf_sess]
+            items=[self.toConferenceSessionForm(cs) for cs in conf_sess]
         )
         
     @endpoints.method(CONF_WISH_REQUEST, ConferenceSessionForm,
                       path='session/{websafeSessionKey}',
                       http_method='GET', name='getConferenceSession')
     def getConferenceSession(self, request):
-        """Get a conference session by id"""
+        """Get a conference session by key"""
         conf_sess = self._retrieveSession(request.websafeSessionKey)
         if not conf_sess:
             raise endpoints.NotFoundException('No session found with key: %s' % request.websafeSessionKey)
@@ -292,19 +293,19 @@ class ConferenceApi(remote.Service, ConferenceApiHelper):
         return BooleanMessage(data=True)
 
     @staticmethod
-    def _cacheSpeakerAndSession(speaker_id, conf_id):
+    def _cacheSpeakerAndSession(speaker_key, conf_key):
         """Assign Speaker and their Session to memcache; used by memcache cron job """
         session_message = ""
 
         # Make sure the conference and speaker are both valid
-        if conf_id and speaker_id:
-            conf = ndb.Key(urlsafe=conf_id).get()
-            speaker = ndb.Key(urlsafe=speaker_id).get()
+        if conf_key and speaker_key:
+            conf = ndb.Key(urlsafe=conf_key).get()
+            speaker = ndb.Key(urlsafe=speaker_key).get()
 
             if conf and speaker:
                 # Now retrieve all sessions  for that conference at which this speaker will speak
                 sessions = ConferenceSession.query(ancestor=conf.key)\
-                    .filter(ndb.AND(ConferenceSession.speakerUserId == speaker_id))\
+                    .filter(ndb.AND(ConferenceSession.speakerUserId == speaker_key))\
                     .fetch(projection=[Conference.name])
 
                 # If this speaker is supposed to speak at multiple sessions,
@@ -318,13 +319,13 @@ class ConferenceApi(remote.Service, ConferenceApiHelper):
                 else:
                     memcache.delete(speaker.mainEmail)
             elif not conf:
-                raise endpoints.NotFoundException('No conference found with key: %s' % conf_id)
+                logging.error('No conference found with key: %s' % conf_key)
             elif not speaker:
-                raise endpoints.NotFoundException('No speaker found with key: %s' % speaker_id)
-        elif not conf_id:
-            raise endpoints.NotFoundException('No conference key was provided')
-        elif not speaker_id:
-            raise endpoints.NotFoundException('No speaker key was provided')
+                logging.error('No speaker found with key: %s' % speaker_key)
+        elif not conf_key:
+            logging.error('No conference key was provided')
+        elif not speaker_key:
+            logging.error('No speaker key was provided')
 
         return session_message
 
