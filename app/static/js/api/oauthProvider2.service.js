@@ -12,12 +12,12 @@
    * Service that holds the OAuth2 information shared across all the pages.
    *
    */
-  function Oauth2Provider($modal, gapi, alertStatus, statusMessage) {
+  function Oauth2Provider($modal, gapi, alertStatus, statusMessage, authStatus) {
     /**
      * Calls the OAuth2 authentication method.
      */
     var signIn = function(modalInstance) {
-          gapi.login(function () {
+          gapi.login(function() {
             gapi.client.oauth2.userinfo.get()
               .execute(function (resp) {
                 authStatus.signedIn = true;
